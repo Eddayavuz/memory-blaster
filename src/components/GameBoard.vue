@@ -1,86 +1,99 @@
+<script>
+import CardView from "./CardView.vue";
+import cardData from "../data/memoryCards8"
+export default {
+  components: {
+    CardView,
+  },
+  data() {
+    return {
+      cardsData: cardData.concat(cardData),
+      matchedPairs: 0,
+      cardOne: "",
+      cardTwo: "",
+      disableDeck: false,
+      displayTypeGameBoard: " ",
+      displayTypeMeme: "",
+    };
+  },
+  mounted() {
+    this.shuffleCards();
+  },
+  methods: {
+    shuffleCards() {
+      this.matchedPairs = 0;
+      this.disableDeck = false;
+      this.cardOne = "";
+      this.cardTwo = "";
+      this.displayTypeGameBoard = "";
+      this.displayTypeMeme = "none";
+      this.cardsData = this.cardsData.sort(function () {
+        return 0.5 - Math.random();
+      });
+    },
+    flipCard(evt) {
+      const clickedCard = evt.target; // set the event's target DOM element as a variable
+      if (clickedCard.classList.contains("matched")) return;
+      if (this.cardOne !== clickedCard && !this.disableDeck) { // make sure that the current variable cardOne is not the same value as the clickedCard, AND that the deck is NOT disabled
+        clickedCard.classList.add("flip"); // add the 'flip' class to the classes currently assigned to the clickedCard
+        if (!this.cardOne) {
+          // if there is not yet a value assigned to the cardOne variable...
+          return (this.cardOne = clickedCard); // set the cardOne value as the clickedCard and end this function.
+        }
+        // everything below will execute if the condition above was not met (if cardOne already had a value when flipCard() was called)
+        this.cardTwo = clickedCard; // set the cardTwo value as the clickedCard
+        this.disableDeck = true; // set this to true for the next time this flipCard function is called, when the top level condition is evaluated
+        // if the function has come this far, it means we have set values for both cardOne and cardTwo.
+        // each of the cardOne and cardTwo variables currently represent a whole HTML element with childNodes
+        let cardOneImg = this.cardOne.querySelector(".back-view img").src; // query the elements inside cardOne to get the value of the img src, such as `img-2.png`, and set that as the value of cardOneImg
+        let cardTwoImg = this.cardTwo.querySelector(".back-view img").src; // query the elements inside cardOne to get the value of the img src, such as `img-2.png`, and set that as the value of cardTwoImg
+        this.matchCards(cardOneImg, cardTwoImg); // now check the images by filename to see if they are a match!
+      }
+    },
+    matchCards(img1, img2) {
+      if (img1 === img2) {
+        this.matchedPairs++;
+        this.cardOne.classList.add("pulse");
+        this.cardTwo.classList.add("pulse");
+        if (this.matchedPairs == 8) {
+          this.displayTypeGameBoard = "none";
+          this.displayTypeMeme = "block";
+          return; 
+        }
+      
+        this.cardOne.classList.add("matched"); 
+        this.cardTwo.classList.add("matched"); 
+        this.cardOne = ""; 
+        this.cardTwo = "";
+        this.disableDeck = false;
+        return; 
+      }
+      setTimeout(() => {
+        this.cardOne.classList.add("shake");
+        this.cardTwo.classList.add("shake");
+      }, 400);
+      // these cards didn't match so we'll un-flip them, but let the user see them both before they disappear
+      setTimeout(() => {
+        this.cardOne.classList.remove("shake", "flip");
+        this.cardTwo.classList.remove("shake", "flip");
+        this.cardOne = "";
+        this.cardTwo = ""; // reset the cardOne & cardTwo variables to empty string
+        this.disableDeck = false;
+        return;
+      }, 1200);
+    },
+  },
+}
+</script>
+
 <template>
-  <div class="item">
-    <i>
-      <slot name="icon"></slot>
-    </i>
-    <div class="details">
-      <h3>
-        <slot name="heading"></slot>
-      </h3>
-      <slot></slot>
-    </div>
-  </div>
+  <div><img class="image-popup" src="well-done.jpeg" alt="puppy high five human" :style="`display:${displayTypeMeme};`" />
+  <div class="game-board" :style="`display:${displayTypeGameBoard};`">
+    <ul class="cards">
+      <li v-for="(cardInfo, index) in cardsData" :key="index" class="card" @click="flipCard">
+        <CardView viewType="front" />
+        <CardView viewType="back" :imageUrl="cardInfo.url" :imageAltText="cardInfo.altText" />
+      </li>
+    </ul>
+  </div></div>
 </template>
-
-<style scoped>
-.item {
-  margin-top: 2rem;
-  display: flex;
-}
-
-.details {
-  flex: 1;
-  margin-left: 1rem;
-}
-
-i {
-  display: flex;
-  place-items: center;
-  place-content: center;
-  width: 32px;
-  height: 32px;
-
-  color: var(--color-text);
-}
-
-h3 {
-  font-size: 1.2rem;
-  font-weight: 500;
-  margin-bottom: 0.4rem;
-  color: var(--color-heading);
-}
-
-@media (min-width: 1024px) {
-  .item {
-    margin-top: 0;
-    padding: 0.4rem 0 1rem calc(var(--section-gap) / 2);
-  }
-
-  i {
-    top: calc(50% - 25px);
-    left: -26px;
-    position: absolute;
-    border: 1px solid var(--color-border);
-    background: var(--color-background);
-    border-radius: 8px;
-    width: 50px;
-    height: 50px;
-  }
-
-  .item:before {
-    content: " ";
-    border-left: 1px solid var(--color-border);
-    position: absolute;
-    left: 0;
-    bottom: calc(50% + 25px);
-    height: calc(50% - 25px);
-  }
-
-  .item:after {
-    content: " ";
-    border-left: 1px solid var(--color-border);
-    position: absolute;
-    left: 0;
-    top: calc(50% + 25px);
-    height: calc(50% - 25px);
-  }
-
-  .item:first-of-type:before {
-    display: none;
-  }
-
-  .item:last-of-type:after {
-    display: none;
-  }
-}
-</style>
