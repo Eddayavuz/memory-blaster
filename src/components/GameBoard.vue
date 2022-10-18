@@ -87,7 +87,6 @@ export default {
 </script>
 
 <template>
-  <div><img class="image-popup" src="well-done.jpeg" alt="puppy high five human" :style="`display:${displayTypeMeme};`" />
   <div class="game-board" :style="`display:${displayTypeGameBoard};`">
     <ul class="cards">
       <li v-for="(cardInfo, index) in cardsData" :key="index" class="card" @click="flipCard">
@@ -95,5 +94,5 @@ export default {
         <CardView viewType="back" :imageUrl="cardInfo.url" :imageAltText="cardInfo.altText" />
       </li>
     </ul>
-  </div></div>
+  </div>
 </template>
